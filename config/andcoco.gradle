@@ -1,0 +1,56 @@
+android.testOptions.unitTests.all {
+    // configure the set of classes for JUnit tests
+    include '**/*Test.class'
+    //exclude '**/espresso/**/*.class'
+
+    // configure max heap size of the test JVM
+    maxHeapSize = "2048m"
+}
+
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+
+jacoco {
+  // See https://github.com/jacoco/jacoco/releases
+  toolVersion = '0.7.5.201505241946'
+}
+
+def coverageSourceDirs = ['../androiddataloading/src/main/java']
+
+task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
+  group = "Reporting"
+
+  description = "Generate Jacoco coverage reports"
+
+  classDirectories = fileTree(dir: '../androiddataloading/build/intermediates/classes/debug',
+      excludes: ['**/R.class',
+                 '**/R$*.class',
+                 '**/BR.class',
+                 '**/*$ViewInjector*.*',
+                 '**/*$ViewBinder*.*',
+                 '**/BuildConfig.*',
+                 '**/Manifest*.*',
+                 '**/*Adapter*.*',
+                 '**/**ViewHolder*.*',
+                 '**/deprecated/**',
+                 '**/view/**',
+                 '**/databinding/**',
+                 '**/*$Lambda$*.*',
+                 '**/*Module.*',
+                 '**/*Dagger*.*',
+                 '**/*MembersInjector*.*',
+                 '**/*_Provide*Factory*.*'])
+
+  additionalSourceDirs = files(coverageSourceDirs)
+  sourceDirectories = files(coverageSourceDirs)
+  executionData = files('../androiddataloading/build/jacoco/testDebugUnitTest.exec')
+
+  reports {
+    xml.enabled = true
+    html.enabled = true
+  }
+}
+
+coveralls {
+  jacocoReportPath "${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+}
